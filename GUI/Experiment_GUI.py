@@ -744,20 +744,49 @@ class Main_window(QtWidgets.QWidget):
         self.savePathBtn = QtWidgets.QPushButton('Load')
         self.savePathBtn.clicked.connect(self.savePathDialog)
         self.savePath = QtWidgets.QLineEdit()
+
+        # widget to choose the file name 
+        saveFile_label = QtWidgets.QLabel('save name')
+        self.saveFile = QtWidgets.QLineEdit()        
+        saveFile_label_comment = QtWidgets.QLabel('without .h5 extension')
+        
         # widget to choose the configuration file to be used for experiment file creation
         config_label = QtWidgets.QLabel('config file')
         self.configBtn = QtWidgets.QPushButton('Load')
         self.configBtn.clicked.connect(self.configFileDialog)
         self.configFile = QtWidgets.QLineEdit()
         
-        pathLine = QtWidgets.QHBoxLayout()
+        # Div - file load/save
+        pathLine = QtWidgets.QGridLayout()
         pathLine.setSpacing(1)
-        pathLine.addWidget(savePath_label)
-        pathLine.addWidget(self.savePathBtn)
-        pathLine.addWidget(self.savePath)
-        pathLine.addWidget(config_label)
-        pathLine.addWidget(self.configBtn)
-        pathLine.addWidget(self.configFile)
+
+        # First Line
+        pathLine.addWidget(savePath_label, 1, 1)
+        pathLine.addWidget(self.savePathBtn, 1, 2)
+        pathLine.addWidget(self.savePath, 1, 3)
+
+        pathLine.addWidget(saveFile_label, 1, 4)
+        pathLine.addWidget(self.saveFile, 1, 5)
+
+        # Second Line
+        pathLine.addWidget(config_label, 2, 1)
+        pathLine.addWidget(self.configBtn, 2, 2)
+        pathLine.addWidget(self.configFile, 2, 3)
+        pathLine.addWidget(saveFile_label_comment, 2, 5)
+
+        # # BACKUP
+        # pathLine = QtWidgets.QHBoxLayout()
+        # pathLine.setSpacing(1)
+        # pathLine.addWidget(savePath_label)
+        # pathLine.addWidget(self.savePathBtn)
+        # pathLine.addWidget(self.savePath)
+
+        # pathLine.addWidget(saveFile_label)
+        # pathLine.addWidget(self.saveFile)
+
+        # pathLine.addWidget(config_label)
+        # pathLine.addWidget(self.configBtn)
+        # pathLine.addWidget(self.configFile)
         
         #---------- sweep dimensions --------------------
         # widget to set the sweep dimension
@@ -1182,7 +1211,10 @@ class Main_window(QtWidgets.QWidget):
         
     def createExp(self):
         result_error = 0
-        self.exp.filename = time.strftime('%Y%m%d%H%M')
+        # File name = time
+        # self.exp.filename = time.strftime('%Y%m%d%H%M')
+        # File name = user choice
+        self.exp.filename = self.saveFile.text()
         self.exp.saveFolder = os.path.abspath(self.savePath.text())+pathSep#.replace('\\','\\\\')
         self.exp.configFile = os.path.abspath(self.configFile.text())#.replace('\\','\\\\')
             
