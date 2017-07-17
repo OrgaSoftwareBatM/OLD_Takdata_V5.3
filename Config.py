@@ -36,4 +36,3 @@ class Variables():
     classList+= ['CMD','DSP_lockIn','DSP_lockIn_sweep','mswait','ATMDelayLine','MercuryIPS']
     readConfigForExpFile = [False,False,False,False,False,False,True,True,False,True,False]
     readConfigForExpFile+= [False,False,False,False,False,False]
-
