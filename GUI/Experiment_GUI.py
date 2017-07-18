@@ -748,7 +748,9 @@ class Main_window(QtWidgets.QWidget):
         # widget to choose the file name 
         saveFile_label = QtWidgets.QLabel('save name')
         self.saveFile = QtWidgets.QLineEdit()        
-        saveFile_label_comment = QtWidgets.QLabel('without .h5 extension')
+        # saveFile_label_comment = QtWidgets.QLabel('without .h5 extension')
+        yyyymmddhhmm_label = QtWidgets.QLabel('yymmhh format')
+        self.yyyymmddhhmm = QtWidgets.QCheckBox()
         
         # widget to choose the configuration file to be used for experiment file creation
         config_label = QtWidgets.QLabel('config file')
@@ -772,7 +774,10 @@ class Main_window(QtWidgets.QWidget):
         pathLine.addWidget(config_label, 2, 1)
         pathLine.addWidget(self.configBtn, 2, 2)
         pathLine.addWidget(self.configFile, 2, 3)
-        pathLine.addWidget(saveFile_label_comment, 2, 5)
+        # pathLine.addWidget(saveFile_label_comment, 2, 5)
+        pathLine.addWidget(yyyymmddhhmm_label,2,4)
+        pathLine.addWidget(self.yyyymmddhhmm,2,5)
+
 
         # # BACKUP
         # pathLine = QtWidgets.QHBoxLayout()
@@ -1214,7 +1219,12 @@ class Main_window(QtWidgets.QWidget):
         # File name = time
         # self.exp.filename = time.strftime('%Y%m%d%H%M')
         # File name = user choice
-        self.exp.filename = self.saveFile.text()
+
+        if not self.yyyymmddhhmm.checkState()== 0:
+            self.exp.filename = time.strftime('%Y%m%d%H%M')
+        else:
+            self.exp.filename = self.saveFile.text()
+        
         self.exp.saveFolder = os.path.abspath(self.savePath.text())+pathSep#.replace('\\','\\\\')
         self.exp.configFile = os.path.abspath(self.configFile.text())#.replace('\\','\\\\')
             
