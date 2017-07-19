@@ -745,7 +745,7 @@ class Main_window(QtWidgets.QWidget):
         self.savePathBtn.clicked.connect(self.savePathDialog)
         self.savePath = QtWidgets.QLineEdit()
 
-        # widget to choose the file name 
+        # widget to choose the file name : either user choice or yyyymmddhhmm format 
         saveFile_label = QtWidgets.QLabel('save name')
         self.saveFile = QtWidgets.QLineEdit()        
         # saveFile_label_comment = QtWidgets.QLabel('without .h5 extension')
