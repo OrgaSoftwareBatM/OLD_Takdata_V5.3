@@ -85,7 +85,8 @@ class structurefromGDS(object):
         execute main
         return list of polygons with correct SI-units (scaled by units)
         """
-        self.main()
+        print("\n\n LoadGDS have been disabled \n\n")
+        # self.main()
 #        return np.array(self.pointlists) * self.units[1]
 #        return np.multiply(np.array(self.pointlists), self.units[1])
         return np.array(self.pointlists)

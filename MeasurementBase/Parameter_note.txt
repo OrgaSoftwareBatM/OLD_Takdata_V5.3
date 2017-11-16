@@ -129,6 +129,7 @@
 13: Lock-in (signal recovery, sweep)
 14: wait time (ms)
 15: ATM delay line
+16: RF_Attn
 
 -----------------------------------
 [Readout instruments]
@@ -557,3 +558,14 @@ Doubles[1] = lower limit of delay [ps]
 	Bit3: Velocity Initial [default 100000]
 	Bit4: Velocity Maximum [default 100000]
 	Bit5: Initialize to 0 position
+
+
+- RF_Attn (16) (e.g LDA 602 Vaunix)
+
+Strings[0] = Name
+Strings[1] = USB address (=1)
+Strings[2] = Unit (dB)
+Doubles[0] = Attenuation (dB)
+Doubles[1] = Upper limit (dB) (63dB - datasheet)
+Doubles[2] = Lower limit (dB) (0dB - datasheet)
+Doubles[3] = Insertion Loss (dB) (typ. 5.5dB @300MHz)
