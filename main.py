@@ -949,7 +949,7 @@ def Analysis20170125():
                                xticks=[],     yticks=[],     zticks=[], 
                                colormap = "viridis",
                                )
-                print j,k
+                print(j,k)
         fig.savefig(h5path+filename+'_'+readout+'.png')
     
 def Analysis20170126():       
@@ -1397,5 +1397,5 @@ if __name__ == '__main__':
 #    Analysis20170125()
 #    Analysis20170126()
     Analysis20170127()
-    print 'Time for loading data:%f' % (time.time()-start)
+    print('Time for loading data:%f' % (time.time()-start))
 #    plt.show()

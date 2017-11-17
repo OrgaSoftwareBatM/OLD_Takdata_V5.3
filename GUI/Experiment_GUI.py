@@ -6,15 +6,29 @@ Created on Fri Nov 18 18:52:59 2016
 """
 
 import numpy as np
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
+#from PyQt5 import QtGui
 import sys
 sys.path.insert(0,'..')
 import os, platform
 import h5py
 import time
 import GUI.IpythonWidgetClass as IpyConsole
-from GUI.UtilityGUI import *
-from MeasurementBase.measurement_classes import *
+
+
+from GUI.UtilityGUI import QFloatLineEdit, twoDgui, oneDgui
+#from GUI.UtilityGUI import *
+""" unused gui utility imports
+#from GUI.UtilityGUI import  QFloatLineEdit, BasePEWidget
+"""
+
+from MeasurementBase.measurement_classes import Experiment, MeasConfig, single_sweep
+#from MeasurementBase.measurement_classes import *
+""" unused instruments imports
+#from MeasurementBase.measurement_classes import \
+#readout_inst, ADC, K2000, K34401A, DSP_lockIn, sweep_inst, DAC, DAC_Lock_in, RS_RF, AWG, \
+#FastSequences, FastSequenceSlot, CMD, DSP_lockIn_sweep, mswait, ATMDelayLine
+"""
 
 if platform.system()=='Windows':
     import MeasurementBase.SendFileNames as sfn
@@ -32,7 +46,7 @@ readout_kind = [0,1,2,3,12]
 sweep_kind = [4,5,6,7,8,9,10,11,13,14,15,16]
 
 #-------create parameter list for bool setup-------------
-listOfCustomBools = [None, None, None, None, None, None, 'RF', 'AWG', None, None, None, None, 'DSP', None, None,'ATMDelayLine']
+listOfCustomBools = [None, None, None, None, None, None, 'RF', 'AWG', None, None, None, None, 'DSP', None, None,'ATMDelayLine',None]
 # parameter for RF
 param_list = {'RF':['Frequency','Power','Pulse period','Pulse width','Pulse delay','Pulse mod on?','output on?','Pulse source (int or ext)','Pulse mode','Ext trig input src','Ext impedance']}
 # parameter for AWG
@@ -53,6 +67,7 @@ param_list.update({'DSP':params})
 params = ['Echo Mode', 'Acceleration', 'Deceleration', 'Velocity Initial', 'Velocity Maximum', 'Initialize to 0 position']
 param_list.update({'ATMDelayLine':params})
 
+# parameter for MercuryIPS
 
 """------------------------------
 Define different sweep mode
@@ -712,8 +727,14 @@ class Main_window(QtWidgets.QWidget):
                  numOfDims=3,
                  ):
         super(Main_window, self).__init__()
-        self.exp = Experiment()
-        self.config = MeasConfig()
+        try:
+            self.exp = Experiment()
+        except:
+            print('failed to load Experiment Class from MeasurementBase.measurement_classes')
+        try:
+            self.config = MeasConfig()
+        except:
+            print('failed to load MeasConfig Class from MeasurementBase.measurement_classes')
         self.instInfos = [['a'],[0],['b'],[0]]
         self.error = QtWidgets.QErrorMessage()
         
@@ -724,7 +745,7 @@ class Main_window(QtWidgets.QWidget):
         self.savePathBtn.clicked.connect(self.savePathDialog)
         self.savePath = QtWidgets.QLineEdit()
 
-        # widget to choose the file name 
+        # widget to choose the file name : either user choice or yyyymmddhhmm format 
         saveFile_label = QtWidgets.QLabel('save name')
         self.saveFile = QtWidgets.QLineEdit()        
         # saveFile_label_comment = QtWidgets.QLabel('without .h5 extension')
@@ -757,6 +778,7 @@ class Main_window(QtWidgets.QWidget):
         pathLine.addWidget(yyyymmddhhmm_label,2,4)
         pathLine.addWidget(self.yyyymmddhhmm,2,5)
 
+
         # # BACKUP
         # pathLine = QtWidgets.QHBoxLayout()
         # pathLine.setSpacing(1)
@@ -770,8 +792,7 @@ class Main_window(QtWidgets.QWidget):
         # pathLine.addWidget(config_label)
         # pathLine.addWidget(self.configBtn)
         # pathLine.addWidget(self.configFile)
-
-
+        
         #---------- sweep dimensions --------------------
         # widget to set the sweep dimension
         sweepDim_container = QtWidgets.QScrollArea()
@@ -1072,7 +1093,7 @@ class Main_window(QtWidgets.QWidget):
             rindex = 0
             for i, item in enumerate(self.config.list):
                 if item.kind in sweep_kind:
-                #    sweep_inst = True
+#                    sweep_inst = True
                     # setup sweep instruments bools
                     if item.name in self.sweep_inst_bools.inst_name_list:
                         n = self.sweep_inst_bools.inst_name_list.index(item.name)
@@ -1082,7 +1103,7 @@ class Main_window(QtWidgets.QWidget):
                     else:
                         print('cannot find %s in sweep bool GUIs. Please check the configuration file.')
                 elif item.kind in readout_kind:
-                #    sweep_inst = False
+#                    sweep_inst = False
                     # setup readout instruments bools
                     if item.name in self.readout_inst_bools.inst_name_list:
                         n = self.readout_inst_bools.inst_name_list.index(item.name)
@@ -1092,23 +1113,23 @@ class Main_window(QtWidgets.QWidget):
                     else:
                         print('cannot find %s in readout bool GUIs. Please check the configuration file.')
 
-        #        if sweep_inst:
-        #            found = 0
-        #            for j, name2 in enumerate(self.sweep_inst_bools.inst_name_list):
-        #                if item.name == name2:
-        #                    self.sweep_inst_bools.UI_list[j].value.setText(str(self.exp.sweep_inst_bools[index][0]))
-        #                    self.sweep_inst_bools.UI_list[j].value2.setText(str(self.exp.sweep_inst_bools[index][1]))
-        #                    found = 1
-        #            index += 1
-        #            if found == 0:# In case the instrument is not found in the current list add an instrument to the list (under construction)
-        #                print('Proper configuration file is not loaded.')
+#                if sweep_inst:
+#                    found = 0
+#                    for j, name2 in enumerate(self.sweep_inst_bools.inst_name_list):
+#                        if item.name == name2:
+#                            self.sweep_inst_bools.UI_list[j].value.setText(str(self.exp.sweep_inst_bools[index][0]))
+#                            self.sweep_inst_bools.UI_list[j].value2.setText(str(self.exp.sweep_inst_bools[index][1]))
+#                            found = 1
+#                    index += 1
+#                    if found == 0:# In case the instrument is not found in the current list add an instrument to the list (under construction)
+#                        print('Proper configuration file is not loaded.')
                         
-        #     setup readout inst bools (Known problem: It does not work for ADC.)
-        #    for i, name in enumerate(self.exp.readoutlist):
-        #        for j, name2 in enumerate(self.readout_inst_bools.inst_name_list):
-        #            if name == name2:
-        #                self.readout_inst_bools.UI_list[j].value.setText(str(self.exp.readout_inst_bools[i][0]))
-        #                self.readout_inst_bools.UI_list[j].value2.setText(str(self.exp.readout_inst_bools[i][1]))
+            # setup readout inst bools (Known problem: It does not work for ADC.)
+#            for i, name in enumerate(self.exp.readoutlist):
+#                for j, name2 in enumerate(self.readout_inst_bools.inst_name_list):
+#                    if name == name2:
+#                        self.readout_inst_bools.UI_list[j].value.setText(str(self.exp.readout_inst_bools[i][0]))
+#                        self.readout_inst_bools.UI_list[j].value2.setText(str(self.exp.readout_inst_bools[i][1]))
                         
             # Read data and set data
             if self.tab.currentIndex()==0:
@@ -1206,7 +1227,7 @@ class Main_window(QtWidgets.QWidget):
         
         self.exp.saveFolder = os.path.abspath(self.savePath.text())+pathSep#.replace('\\','\\\\')
         self.exp.configFile = os.path.abspath(self.configFile.text())#.replace('\\','\\\\')
-   
+            
         self.exp.dim = []
         for i in range(self.sweepDim.size):
             if self.sweepDim.vertical:
@@ -1217,6 +1238,7 @@ class Main_window(QtWidgets.QWidget):
             if value>0:
                 self.exp.dim.append(value)
             else:
+                print('sweepdim break error')
                 break
                 
         self.exp.comments = self.comments.toPlainText()
@@ -1258,7 +1280,8 @@ class Main_window(QtWidgets.QWidget):
             self.exp.sweeplist = []
             
         if result_error == 0:
-            print("\n\n self.exp.saveFolder : \t"+self.exp.saveFolder+self.exp.filename+'.h5'+"\n")
+            print('Exp Sweep Config exported in:')
+            print(self.exp.saveFolder+self.exp.filename+'.h5')
             return self.exp.saveFolder+self.exp.filename+'.h5'
         else:
             self.error.showMessage('File creation has failed. Please check the input parameters.')
@@ -1320,7 +1343,7 @@ class Main_window(QtWidgets.QWidget):
                         for k in self.sweep_inst_bools.UI_list:
                             if selec == k.inst.text():
                                 ss.bools=[int(k.value.text()),int(k.value2.text())]
-                    #    self.exp.sweep_inst_bools.append(ss.bools)
+#                        self.exp.sweep_inst_bools.append(ss.bools)
                         self.exp.sweeplist.append(ss)
             self.exp.comments += os.linesep
             
@@ -1354,7 +1377,7 @@ class Main_window(QtWidgets.QWidget):
                         vec_value = self.vector_params.vectos.grid.itemAtPosition(i,j).widget().getValue()
                         self.exp.comments += 'vec%d = %f, ' % (j, vec_value)
                         ss.array += arrayGenerator(dims, j, base_value, vec_value, method)
-                    #    ss.array += np.moveaxis(np.moveaxis(np.ones(dims,dtype=np.float64),j,-1)*np.linspace(0,vec_value,dim),-1,j)
+#                        ss.array += np.moveaxis(np.moveaxis(np.ones(dims,dtype=np.float64),j,-1)*np.linspace(0,vec_value,dim),-1,j)
                     self.exp.comments += os.linesep
                     self.exp.sweeplist.append(ss)
         return (0, 'OK')

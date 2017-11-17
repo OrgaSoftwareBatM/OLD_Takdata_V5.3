@@ -7,23 +7,38 @@ Created on Tue Nov 22 22:18:54 2016
 """
 
 import numpy as np
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
+#from PyQt5 import QtGui
 import sys
 sys.path.insert(0,'..')
 import os
 import h5py
 import time
 import GUI.IpythonWidgetClass as IpyConsole
-from GUI.UtilityGUI import *
-from MeasurementBase.measurement_classes import *
+
+from GUI.UtilityGUI import QFloatLineEdit
+#from GUI.UtilityGUI import *
+""" unused gui utility imports
+#from GUI.UtilityGUI import  twoDgui, oneDgui, QFloatLineEdit, BasePEWidget
+"""
+
+from MeasurementBase.measurement_classes import  MeasConfig, ADC, K2000, K34401A, DAC, \
+DAC_Lock_in, RS_RF, AWG, FastSequences, FastSequenceSlot, CMD, DSP_lockIn_sweep, mswait, \
+ATMDelayLine, DSP_lockIn, MercuryIPS
+
+#from MeasurementBase.measurement_classes import *
+""" unused instruments imports
+#from MeasurementBase.measurement_classes import Experiment, single_sweep \
+#readout_inst, sweep_inst \
+# 
+"""
 
 pathSep = QtCore.QDir.separator()
 init_param_dt = np.dtype({'names':['name','parameter','value'],'formats':['S100','u8','f8']})
 
 # global List of instruments
 ginst_list = ['ADC','K2000','34401A','None','DAC','DAC_Lock_in','RF','AWG','None','fast sequence']
-ginst_list+= ['Fast seuqnce slot','command line','DSP_Lock_in','DSP_Lock_in_sweep','ms2wait','ATMDelayLine']
-ginst_list += ['RF_Attn']
+ginst_list+= ['Fast seuqnce slot','command line','DSP_Lock_in','DSP_Lock_in_sweep','ms2wait','ATMDelayLine', 'MercuryIPS']
 
 class FileNameCheck(QtWidgets.QWidget):
     def __init__(self,
@@ -44,171 +59,171 @@ class FileNameCheck(QtWidgets.QWidget):
         self.close()
      
 #"""-------------------------------------------
-    #classes for setup of each instruments
-    #(You have to add new class if you add a new instrument)
-    #----------------------------------------------"""
-    #class inst_setup_base(QtWidgets.QWidget):
-    #    def __init__(self,
-    #                 parent=None,
-    #                 ):
-    #        super(inst_setup_base, self).__init__()
-    #        # inst_setup_UI will be given as parent.
-    #        self.parent = parent
-    #        self.w = None
-    #        
-    #    def setUI2LayoutAndList(self, UIList, layout, name, initparam, selections=None, dialogBtn=False, function=None):
-    #        """ Setup GUI to instrument setup UI """
-    #        hb = QtWidgets.QHBoxLayout()        # Layout to store the UI
-    #        hb.addWidget(QtWidgets.QLabel(name))    # label
-    #        if type(selections) == list:
-    #            self.w = QtWidgets.QComboBox()
-    #            self.w.addItems(selections)
-    #            self.w.setCurrentIndex(int(initparam))
-    #            hb.addWidget(self.w)
-    #        else:
-    #            if type(initparam) == str:
-    #                self.w = QtWidgets.QLineEdit()
-    #                self.w.setText(initparam)
-    #                hb.addWidget(self.w)
-    #                if dialogBtn:
-    #                    dBtn = QtWidgets.QPushButton('...')
-    #                    dBtn.clicked.connect(self.folderDialog)
-    #                    hb.addWidget(dBtn)
-    #            elif type(initparam)==int:
-    #                self.w = QtWidgets.QSpinBox()
-    #                self.w.setRange(0, 10000000)
-    #                self.w.setValue(initparam)
-    #                if not function == None:
-    #                    self.w.valueChanged.connect(function)
-    #                hb.addWidget(self.w)
-    #            elif type(initparam)==float:
-    #                self.w = QFloatLineEdit()
-    #                self.set_value(initparam)
-    #                hb.addWidget(self.w)
-    #            elif type(initparam)==bool:
-    #                self.w = QtWidgets.QCheckBox()
-    #                if initparam:
-    #                    self.w.setCheckState(2)
-    #                else:
-    #                    self.w.setCheckState(0)
-    #                hb.addWidget(self.w)
-    #            elif type(initparam)==list:
-    #                self.w = []
-    #                for p in initparam:
-    #                    if type(p)==int:
-    #                        w = QtWidgets.QSpinBox()
-    #                        w.setRange(0, 10000000)
-    #                        w.setValue(p)
-    #                    elif type(p)==str:
-    #                        w = QtWidgets.QLineEdit()
-    #                        w.setText(p)
-    #                    elif type(p)==float:
-    #                        w = QFloatLineEdit()
-    #                        w.set_value(p)
-    #                    elif type(p)==bool:
-    #                        w = QtWidgets.QCheckBox()
-    #                        if p:
-    #                            w.setCheckState(2)
-    #                        else:
-    #                            w.setCheckState(0)
-    #                    self.w.append(w)
-    #                    hb.addWidget(w)
-    #                    
-    #        UIList.append(self.w)
-    #        layout.addLayout(hb)
-    #
-    #    def folderDialog(self):
-    #        """ Open dialog to select folder and insert it into the given line edit """
-    #        fileDialog = QtWidgets.QFileDialog(self)
-    #        fileDialog.setFileMode(QtWidgets.QFileDialog.Directory)
-    #        fileDialog.setOption(QtWidgets.QFileDialog.ShowDirsOnly, True)
-    #        savePath = fileDialog.getExistingDirectory(self, 'Choose folder')    
-    #        if not savePath == '':
-    #            savePath = os.path.abspath(savePath)
-    #            savePath += pathSep
-    #        self.w.setText(savePath)
-    #    
-    #class ADC_setup(inst_setup_base):
-    #    def __init__(self,
-    #                 parent=None,
-    #                 ):
-    #        super(ADC_setup, self).__init__()
-    #        # inst_setup_UI will be given as parent.
-    #        self.parent = parent
-    ##        self.parent = inst_setup_UI()   # temporal
-    #        self.ly = QtWidgets.QVBoxLayout()
-    #        self.UIs = []
-    #        self.initUI()
-    #        self.setLayout(self.ly)
-    #        self.show()
-    #        
-    #    def initUI(self):
-    #        if self.parent.item == 0:
-    #            self.parent.item = ADC()
-    ##        UIs = self.parent.UIs
-    #        UIs = self.UIs
-    ##        ly = self.parent.ly
-    #        ly = self.ly
-    #        item = self.parent.item
-    #        self.setUI2LayoutAndList(UIs, ly, 'name', item.strings[0])
-    #        self.setUI2LayoutAndList(UIs, ly, 'unit', item.strings[2])
-    #        self.setUI2LayoutAndList(UIs, ly, 'No of ch', item.uint64s[1], function=self.adcSetup)
-    ##        UIs[2].valueChanged.connect(self.adcSetup)
-    #        self.setUI2LayoutAndList(UIs, ly, 'Name list', item.strings[3].split(';'))
-    #        self.setUI2LayoutAndList(UIs, ly, 'Unit list', item.strings[4].split(';'))
-    #        self.setUI2LayoutAndList(UIs, ly, 'Conversion factor list', [float(v) for v in item.strings[5].split(';')])
-    #        self.setUI2LayoutAndList(UIs, ly, 'range', [0,1,5,10].index(item.uint64s[0]), ['+/-0.2V','+/-1V','+/-5V','+/-10V'])
-    #        self.setUI2LayoutAndList(UIs, ly, 'sampling rate', item.uint64s[2])
-    #        self.setUI2LayoutAndList(UIs, ly, 'real time avg on?', int(item.uint64s[3])!= 0)
-    #        self.setUI2LayoutAndList(UIs, ly, 'real time average points', item.uint64s[4])
-    #        self.setUI2LayoutAndList(UIs, ly, 'Inp config', [-1,10083,10078,10106,12529].index(item.uint64s[5]), ['default','RSE','NRSE','Differential','Pseudodifferential'])
-    #        self.setUI2LayoutAndList(UIs, ly, 'Buffer size', item.uint64s[6])
-    #        self.setUI2LayoutAndList(UIs, ly, 'ramp trigger input', item.uint64s[8])
-    #        self.setUI2LayoutAndList(UIs, ly, 'fast trigger input', item.uint64s[9])
-    #        
-    #    def adcSetup(self, noOfchannel):
-    #        print(noOfchannel)
-    #        for i in range(3):
-    #            ly = self.parent.ly.itemAt(i+3).layout()
-    #            for j in range(ly.count()):
-    #                ly.itemAt(j).widget().deleteLater()
-    #        
-    #        hb = QtWidgets.QHBoxLayout()
-    #        label = QtWidgets.QLabel('Name list')
-    #        hb.addWidget(label)
-    #        wlist = []
-    #        for i in range(noOfchannel):
-    #            item = QtWidgets.QLineEdit()
-    #            item.setText('ADC'+str(i))
-    #            wlist.append(item)
-    #            hb.addWidget(item)
-    #        self.parent.UIs[3] = wlist
-    #        self.parent.ly.insertLayout(3,hb)
-    #        
-    #        hb = QtWidgets.QHBoxLayout()
-    #        label = QtWidgets.QLabel('Unit list')
-    #        hb.addWidget(label)
-    #        wlist = []
-    #        for i in range(noOfchannel):
-    #            item = QtWidgets.QLineEdit()
-    #            item.setText('V')
-    #            wlist.append(item)
-    #            hb.addWidget(item)
-    #        self.parent.UIs[4] = wlist
-    #        self.parent.ly.insertLayout(4,hb)
-    #        
-    #        hb = QtWidgets.QHBoxLayout()
-    #        label = QtWidgets.QLabel('Conversion factor list')
-    #        hb.addWidget(label)
-    #        wlist = []
-    #        for i in range(noOfchannel):
-    #            item = QFloatLineEdit()
-    #            item.set_value(1.0)
-    #            wlist.append(item)
-    #            hb.addWidget(item)
-    #        self.parent.UIs[5] = wlist
-    #        self.parent.ly.insertLayout(5,hb)
-            
+#classes for setup of each instruments
+#(You have to add new class if you add a new instrument)
+#----------------------------------------------"""
+#class inst_setup_base(QtWidgets.QWidget):
+#    def __init__(self,
+#                 parent=None,
+#                 ):
+#        super(inst_setup_base, self).__init__()
+#        # inst_setup_UI will be given as parent.
+#        self.parent = parent
+#        self.w = None
+#        
+#    def setUI2LayoutAndList(self, UIList, layout, name, initparam, selections=None, dialogBtn=False, function=None):
+#        """ Setup GUI to instrument setup UI """
+#        hb = QtWidgets.QHBoxLayout()        # Layout to store the UI
+#        hb.addWidget(QtWidgets.QLabel(name))    # label
+#        if type(selections) == list:
+#            self.w = QtWidgets.QComboBox()
+#            self.w.addItems(selections)
+#            self.w.setCurrentIndex(int(initparam))
+#            hb.addWidget(self.w)
+#        else:
+#            if type(initparam) == str:
+#                self.w = QtWidgets.QLineEdit()
+#                self.w.setText(initparam)
+#                hb.addWidget(self.w)
+#                if dialogBtn:
+#                    dBtn = QtWidgets.QPushButton('...')
+#                    dBtn.clicked.connect(self.folderDialog)
+#                    hb.addWidget(dBtn)
+#            elif type(initparam)==int:
+#                self.w = QtWidgets.QSpinBox()
+#                self.w.setRange(0, 10000000)
+#                self.w.setValue(initparam)
+#                if not function == None:
+#                    self.w.valueChanged.connect(function)
+#                hb.addWidget(self.w)
+#            elif type(initparam)==float:
+#                self.w = QFloatLineEdit()
+#                self.set_value(initparam)
+#                hb.addWidget(self.w)
+#            elif type(initparam)==bool:
+#                self.w = QtWidgets.QCheckBox()
+#                if initparam:
+#                    self.w.setCheckState(2)
+#                else:
+#                    self.w.setCheckState(0)
+#                hb.addWidget(self.w)
+#            elif type(initparam)==list:
+#                self.w = []
+#                for p in initparam:
+#                    if type(p)==int:
+#                        w = QtWidgets.QSpinBox()
+#                        w.setRange(0, 10000000)
+#                        w.setValue(p)
+#                    elif type(p)==str:
+#                        w = QtWidgets.QLineEdit()
+#                        w.setText(p)
+#                    elif type(p)==float:
+#                        w = QFloatLineEdit()
+#                        w.set_value(p)
+#                    elif type(p)==bool:
+#                        w = QtWidgets.QCheckBox()
+#                        if p:
+#                            w.setCheckState(2)
+#                        else:
+#                            w.setCheckState(0)
+#                    self.w.append(w)
+#                    hb.addWidget(w)
+#                    
+#        UIList.append(self.w)
+#        layout.addLayout(hb)
+#
+#    def folderDialog(self):
+#        """ Open dialog to select folder and insert it into the given line edit """
+#        fileDialog = QtWidgets.QFileDialog(self)
+#        fileDialog.setFileMode(QtWidgets.QFileDialog.Directory)
+#        fileDialog.setOption(QtWidgets.QFileDialog.ShowDirsOnly, True)
+#        savePath = fileDialog.getExistingDirectory(self, 'Choose folder')    
+#        if not savePath == '':
+#            savePath = os.path.abspath(savePath)
+#            savePath += pathSep
+#        self.w.setText(savePath)
+#    
+#class ADC_setup(inst_setup_base):
+#    def __init__(self,
+#                 parent=None,
+#                 ):
+#        super(ADC_setup, self).__init__()
+#        # inst_setup_UI will be given as parent.
+#        self.parent = parent
+##        self.parent = inst_setup_UI()   # temporal
+#        self.ly = QtWidgets.QVBoxLayout()
+#        self.UIs = []
+#        self.initUI()
+#        self.setLayout(self.ly)
+#        self.show()
+#        
+#    def initUI(self):
+#        if self.parent.item == 0:
+#            self.parent.item = ADC()
+##        UIs = self.parent.UIs
+#        UIs = self.UIs
+##        ly = self.parent.ly
+#        ly = self.ly
+#        item = self.parent.item
+#        self.setUI2LayoutAndList(UIs, ly, 'name', item.strings[0])
+#        self.setUI2LayoutAndList(UIs, ly, 'unit', item.strings[2])
+#        self.setUI2LayoutAndList(UIs, ly, 'No of ch', item.uint64s[1], function=self.adcSetup)
+##        UIs[2].valueChanged.connect(self.adcSetup)
+#        self.setUI2LayoutAndList(UIs, ly, 'Name list', item.strings[3].split(';'))
+#        self.setUI2LayoutAndList(UIs, ly, 'Unit list', item.strings[4].split(';'))
+#        self.setUI2LayoutAndList(UIs, ly, 'Conversion factor list', [float(v) for v in item.strings[5].split(';')])
+#        self.setUI2LayoutAndList(UIs, ly, 'range', [0,1,5,10].index(item.uint64s[0]), ['+/-0.2V','+/-1V','+/-5V','+/-10V'])
+#        self.setUI2LayoutAndList(UIs, ly, 'sampling rate', item.uint64s[2])
+#        self.setUI2LayoutAndList(UIs, ly, 'real time avg on?', int(item.uint64s[3])!= 0)
+#        self.setUI2LayoutAndList(UIs, ly, 'real time average points', item.uint64s[4])
+#        self.setUI2LayoutAndList(UIs, ly, 'Inp config', [-1,10083,10078,10106,12529].index(item.uint64s[5]), ['default','RSE','NRSE','Differential','Pseudodifferential'])
+#        self.setUI2LayoutAndList(UIs, ly, 'Buffer size', item.uint64s[6])
+#        self.setUI2LayoutAndList(UIs, ly, 'ramp trigger input', item.uint64s[8])
+#        self.setUI2LayoutAndList(UIs, ly, 'fast trigger input', item.uint64s[9])
+#        
+#    def adcSetup(self, noOfchannel):
+#        print(noOfchannel)
+#        for i in range(3):
+#            ly = self.parent.ly.itemAt(i+3).layout()
+#            for j in range(ly.count()):
+#                ly.itemAt(j).widget().deleteLater()
+#        
+#        hb = QtWidgets.QHBoxLayout()
+#        label = QtWidgets.QLabel('Name list')
+#        hb.addWidget(label)
+#        wlist = []
+#        for i in range(noOfchannel):
+#            item = QtWidgets.QLineEdit()
+#            item.setText('ADC'+str(i))
+#            wlist.append(item)
+#            hb.addWidget(item)
+#        self.parent.UIs[3] = wlist
+#        self.parent.ly.insertLayout(3,hb)
+#        
+#        hb = QtWidgets.QHBoxLayout()
+#        label = QtWidgets.QLabel('Unit list')
+#        hb.addWidget(label)
+#        wlist = []
+#        for i in range(noOfchannel):
+#            item = QtWidgets.QLineEdit()
+#            item.setText('V')
+#            wlist.append(item)
+#            hb.addWidget(item)
+#        self.parent.UIs[4] = wlist
+#        self.parent.ly.insertLayout(4,hb)
+#        
+#        hb = QtWidgets.QHBoxLayout()
+#        label = QtWidgets.QLabel('Conversion factor list')
+#        hb.addWidget(label)
+#        wlist = []
+#        for i in range(noOfchannel):
+#            item = QFloatLineEdit()
+#            item.set_value(1.0)
+#            wlist.append(item)
+#            hb.addWidget(item)
+#        self.parent.UIs[5] = wlist
+#        self.parent.ly.insertLayout(5,hb)
+        
 
 """---------------------------------
 classes for fast sequence setup
@@ -1530,10 +1545,10 @@ class inst_setup_UI(QtWidgets.QWidget):
             for i in range(5):
                 label = QtWidgets.QLabel(name_list[i])
                 item = QtWidgets.QLineEdit()
-            #    if i < 3:
+#                if i < 3:
                 item.setText(value_list[i])
-            #    else:
-                #    item.setText(','.join(value_list[i]))
+#                else:
+#                    item.setText(','.join(value_list[i]))
                 self.UIs.append(item)
                 hb = QtWidgets.QHBoxLayout()
                 hb.addWidget(label)
@@ -1697,41 +1712,27 @@ class inst_setup_UI(QtWidgets.QWidget):
                 hb.addWidget(label)
                 hb.addWidget(item)
                 self.ly.addLayout(hb)
-
         elif kind == 16:
-             #RF attenuator 
+            # Mercury IPS Sweep
             if self.item == 0:
-                self.item = RF_Attn()
-            label = QtWidgets.QLabel('name')
-            item = QtWidgets.QLineEdit()
-            item.setText(self.item.strings[0])
-            self.UIs.append(item)
-            hb = QtWidgets.QHBoxLayout()
-            hb.addWidget(label)
-            hb.addWidget(item)
-            self.ly.addLayout(hb)
-
-            label = QtWidgets.QLabel('USB address')
-            item = QtWidgets.QLineEdit()
-            item.setText(self.item.strings[1])
-            self.UIs.append(item)
-            hb = QtWidgets.QHBoxLayout()
-            hb.addWidget(label)
-            hb.addWidget(item)
-            self.ly.addLayout(hb)    
-
-            label = QtWidgets.QLabel('Unit')
-            item = QtWidgets.QLineEdit()
-            item.setText(self.item.strings[2])
-            self.UIs.append(item)
-            hb = QtWidgets.QHBoxLayout()
-            hb.addWidget(label)
-            hb.addWidget(item)
-            self.ly.addLayout(hb)
-            
-            name_list = ['attenuation','attenuation upper limit','attenuation lower limit','loss insertion']
+                self.item = MercuryIPS()
+            # GUI for strings
+            name_list = ['name','IP Adress','unit', "Axis"]
+            value_list = self.item.strings
+            for i in range(len(name_list)):
+                label = QtWidgets.QLabel(name_list[i])
+                item = QtWidgets.QLineEdit()
+                item.setText(value_list[i])
+                self.UIs.append(item)
+                hb = QtWidgets.QHBoxLayout()
+                hb.addWidget(label)
+                hb.addWidget(item)
+                self.ly.addLayout(hb)
+                
+            #GUI for doubles
+            name_list = ['upper limit (T)','lower limit (T)', "ramp Rate (T/min)"]
             value_list = self.item.doubles
-            for i in range(4):
+            for i in range(len(name_list)):
                 label = QtWidgets.QLabel(name_list[i])
                 item = QFloatLineEdit()
                 item.set_value(value_list[i])
@@ -1740,7 +1741,7 @@ class inst_setup_UI(QtWidgets.QWidget):
                 hb.addWidget(label)
                 hb.addWidget(item)
                 self.ly.addLayout(hb)
-
+        
     def ok_proc(self):
         kind = self.kind
         print(kind)
@@ -1978,15 +1979,15 @@ class inst_setup_UI(QtWidgets.QWidget):
             item.uint64s[5] = self.UIs[8].value()
             item.doubles[0] = self.UIs[9].get_value()
             item.doubles[1] = self.UIs[10].get_value()
-        elif kind == 16:
-            item = RF_Attn()
+        elif kind==16:
+            item = MercuryIPS()
             item.strings[0] = self.UIs[0].text()
             item.strings[1] = self.UIs[1].text()
             item.strings[2] = self.UIs[2].text()
-            item.doubles[0] = self.UIs[3].get_value()
-            item.doubles[1] = self.UIs[4].get_value()
-            item.doubles[2] = self.UIs[5].get_value()
-            item.doubles[3] = self.UIs[6].get_value()
+            item.strings[3] = self.UIs[3].text()
+            item.doubles[0] = self.UIs[4].get_value()
+            item.doubles[1] = self.UIs[5].get_value()
+            item.doubles[2] = self.UIs[6].get_value()
         item.name = item.strings[0]
         self.item = item
         self.name.setText(item.strings[0])
@@ -2071,7 +2072,7 @@ class inst_list(QtWidgets.QWidget):
         self.vb = QtWidgets.QVBoxLayout()
         self.vb.setSpacing(0)
         self.vb.addLayout(hb)
-        # self.vb.addWidget(self.noInst)
+#        self.vb.addWidget(self.noInst)
         self.initUI()
         self.w.setLayout(self.vb)
         instArea.setWidget(self.w)
@@ -2089,7 +2090,7 @@ class inst_list(QtWidgets.QWidget):
                     w = ly.itemAt(j).widget()
                     w.deleteLater()
                     ly.removeItem(ly.itemAt(j))
-                # self.vb.itemAt(no+1+i).widget().deleteLater()
+#                self.vb.itemAt(no+1+i).widget().deleteLater()
                 self.vb.removeItem(self.vb.itemAt(no+1+i))
                 del self.UIs[no+i]
         else:

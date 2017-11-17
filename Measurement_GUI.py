@@ -6,12 +6,12 @@ Created on Sat Nov 26 10:54:36 2016
 @author: shintaro
 """
 
-import numpy as np
-from PyQt5 import QtCore, QtGui, QtWidgets
-import sys
-import os
-import h5py
-import time
+from PyQt5 import QtCore, QtWidgets
+import sys, h5py
+#from PyQT5 import QtGui
+#import os
+#import numpy as np
+#import time
 import GUI.Configuration_GUI as config
 import GUI.Experiment_GUI as exp
 pathSep = QtCore.QDir.separator()
