@@ -14,8 +14,12 @@ from PyQt5 import QtWidgets
 #FPGA_address = '10.0.0.2'
 #addressList = {'K2000':'0:17','K34401A':'0:17','DSP_lockIn':'0:12','RS_RF':'0:19','AWG':'10.0.0.4'}
 #Wodan
-FPGA_address = '192.168.137.11'
-addressList = {'K2000':'0:17','K34401A':'0:17','DSP_lockIn':'0:12','RS_RF':'0:28','AWG':'192.168.0.4', 'ATMDelayLine':'COM3', 'MercuryIPS':'192.168.0.3'}
+#FPGA_address = '192.168.0.3'
+#addressList = {'K2000':'0:17','K34401A':'0:17','DSP_lockIn':'0:12','RS_RF':'0:28','AWG':'192.168.0.4', 'ATMDelayLine':'COM3'}
+#Boreas
+FPGA_address = '192.168.137.21'
+addressList = {'K2000':'0:17','K34401A':'0:17','DSP_lockIn':'0:12','RS_RF':'0:18','AWG':'192.168.0.4', 'ATMDelayLine':'COM3', 'RF_Attn':'1'}
+
 
 """ parameters """
 compress_sweep = True
@@ -33,9 +37,9 @@ readout_kind = [0,1,2,3,12]
 sweep_kind = [4,5,6,7,8,9,10,11,13,14,15,16]
 # list of class name ordered by 'kind' number
 classList = ['ADC','K2000','K34401A','dummy','DAC','DAC_Lock_in','RS_RF','AWG','dummy','FastSequences','FastSequenceSlot']
-classList+= ['CMD','DSP_lockIn','DSP_lockIn_sweep','mswait','ATMDelayLine','MercuryIPS']
+classList+= ['CMD','DSP_lockIn','DSP_lockIn_sweep','mswait','ATMDelayLine','RF_Attn']
 readConfigForExpFile = [False,False,False,False,False,False,True,True,False,True,False]
-readConfigForExpFile+= [False,False,False,False,False,False]
+readConfigForExpFile+= [False,False,False,False,False,False,False]
 
 """
 --------- Place to be changed when you add a new instruments -----------------------
@@ -1119,41 +1123,34 @@ class ATMDelayLine(sweep_inst):   # kind = 15
     
     def getUnit(self):
         return self.strings[2]
-    
-class MercuryIPS(sweep_inst):   # kind = 16
+
+
+class RF_Attn(sweep_inst):
     def __init__(self,
-                 name='MercuryIPS',
-                 address = addressList['MercuryIPS'],
-#                 CommsLayer = 'Ethernet TCP/IP',
-                 unit = 'T',
-#                 baudRate = 115200,
-#                 Parity = 0,
-#                 DataBits = 8,
-#                 StopBits = 1,
-#                 FlowControl = 0,
-#                 ISOBUS = -1,
-                 AxisGroup = 'GRPZ',
-                 #ATzconversion = 0.46,
-                 Trate = 6.285,
-                 ulimit = 15.0,
-                 llimit = -15.0
+                 name='RF_Attn',
+                 USBAddress=addressList['RF_Attn'],
+                 Unit='dB',
+                 attn = 10,
+                 attn_ul=63, # dB upper limit
+                 attn_ll=5.5, # dB lower limit
+                 insertion_loss=5.5, # dB insertion loss
                  ):
-        super(MercuryIPS, self).__init__()
+        super(RF_Attn, self).__init__()
         self.kind = 16
         self.name = name
-        self.strings = [name, address, unit, AxisGroup]
+        self.strings = [name, USBAddress, Unit]
         self.uint64s = []
-        self.doubles = [ulimit, llimit, Trate]
+        self.doubles = [attn, attn_ul, attn_ll, insertion_loss]
         
     def getLimits(self):
-        return [self.doubles[0], self.doubles[1]]
-    
-    def getParameter(self):
-        return 0
+        return [self.doubles[1], self.doubles[2]]
     
     def getUnit(self):
         return self.strings[2]
-    
+
+    def getParameter(self):
+        return 0
+
 
 if __name__=='__main__':
     pass
